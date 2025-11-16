@@ -1,4 +1,6 @@
 package org.thony.model.dto;
 
-public record ProductDto (String name, double price) {
+import java.math.BigDecimal;
+
+public record ProductDto (Long id, String name, BigDecimal price) {
 }

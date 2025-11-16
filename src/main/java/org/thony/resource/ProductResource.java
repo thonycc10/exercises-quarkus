@@ -1,77 +1,68 @@
 package org.thony.resource;
 
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.thony.model.Product;
 import org.thony.model.dto.ProductDto;
+import org.thony.model.dto.ProductEnableDto;
 import org.thony.service.ProductService;
 
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Path( "/products")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class ProductResource {
 
     @Inject
     ProductService service;
 
     @GET
-    @Path("/enable")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Product> getEnableProducts() {
-        return service.products
-                .stream()
-                .filter(Product::isActive)
-                .toList();
+    public List<Product> all() {
+        return service.all();
     }
 
     @GET
-    @Path("/map")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<String> getMapProducts() {
-        return service.products.stream().map(Product::name).toList();
+    @Path("/dto")
+    public List<ProductDto> listarDTO() {
+        return service.enable();
     }
 
     @GET
-    @Path("/sort")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<Product> getSoutedProducts() {
-        return service.products.stream().sorted(Comparator.comparingDouble(Product::price)).toList();
+    @Path("/filtrar")
+    public List<Product> filtrar(@QueryParam("min") BigDecimal min,
+                                  @QueryParam("max") BigDecimal max) {
+        return service.filterByPrice(min, max);
     }
 
     @GET
-    @Path("/max")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Product getMaxProduct() {
-        return service.products.stream().max(Comparator.comparingDouble(Product::price)).orElse(null);
+    @Path("/promedio")
+    public BigDecimal average() {
+        return service.averagePrice();
+    }
+
+    @POST
+    @Transactional
+    public Product crear(Product p) {
+        return service.save(p);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Transactional
+    public boolean delete(@PathParam("id") Long id) {
+        return service.delete(id);
     }
 
     @GET
-    @Path("/productdto")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<ProductDto> getDtoProduct() {
-        return service.products.stream().map(product -> new ProductDto(product.name(), product.price())).toList();
-    }
-
-    @GET
-    @Path("/filter")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<ProductDto> getFilterProducts(
-            @QueryParam("min") double minPrice,
-            @QueryParam("max") double maxPrice,
-            @QueryParam("order") String order
-    ) {
-        return service.products.stream()
-                .filter(product -> product.price() >= minPrice && product.price() <= maxPrice)
-                .sorted((a, b) -> order.equals("desc")
-                        ? Double.compare(b.price(), a.price())
-                        : Double.compare(a.price(), b.price()))
-                .map(product -> new ProductDto(product.name(), product.price()))
-                .toList();
+    @Path("/group-by-enable")
+    public ProductEnableDto groupByEnable() {
+        return service.groupProduct();
     }
 
 }
