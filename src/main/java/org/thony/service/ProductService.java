@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import org.thony.model.Product;
 import org.thony.model.dto.ProductDto;
 import org.thony.model.dto.ProductEnableDto;
+import org.thony.model.dto.ProductUpdateDto;
 import org.thony.repository.ProductRepository;
 
 import java.math.BigDecimal;
@@ -62,11 +63,6 @@ public class ProductService {
     public boolean delete(Long id) {
         return repository.deleteById(id);
     }
-
-    public Map<Boolean, List<Product>> groupByEnable() {
-        return repository.listAll().stream()
-                .collect(Collectors.groupingBy(p -> p.isActive));
-    }
     
     public ProductEnableDto groupProduct() {
         Map<Boolean, List<Product>> mapProductoEnable = groupByEnable();
@@ -74,6 +70,33 @@ public class ProductService {
                 mapProductoEnable.getOrDefault(true, List.of()),
                 mapProductoEnable.getOrDefault(false, List.of())
         );
+    }
+
+    public List<Product> highPrice(long limit) {
+        return repository.listAll().stream()
+                .sorted((a, b) -> b.price.compareTo(a.price))
+                .limit(limit)
+                .toList();
+    }
+
+    public List<Product> filterByName(String name) {
+        return repository.listAll().stream()
+                .filter(product -> product.name.toLowerCase().contains(name.toLowerCase()))
+                .toList();
+    }
+
+
+    public ProductUpdateDto updateProductPriceAndEnable(ProductUpdateDto productUpdateDto) {
+        Product product = findById(productUpdateDto.getId());
+        product.price = productUpdateDto.getPrice();
+        product.isActive = !productUpdateDto.isActive();
+        save(product);
+        return productUpdateDto;
+    }
+
+    private Map<Boolean, List<Product>> groupByEnable() {
+        return repository.listAll().stream()
+                .collect(Collectors.groupingBy(p -> p.isActive));
     }
 
 }

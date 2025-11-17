@@ -7,6 +7,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.thony.model.Product;
 import org.thony.model.dto.ProductDto;
 import org.thony.model.dto.ProductEnableDto;
+import org.thony.model.dto.ProductUpdateDto;
 import org.thony.service.ProductService;
 
 import java.math.BigDecimal;
@@ -52,6 +53,13 @@ public class ProductResource {
         return service.save(p);
     }
 
+    @POST
+    @Path("/update-price")
+    @Transactional
+    public ProductUpdateDto crear(ProductUpdateDto p) {
+        return service.updateProductPriceAndEnable(p);
+    }
+
     @DELETE
     @Path("/{id}")
     @Transactional
@@ -63,6 +71,18 @@ public class ProductResource {
     @Path("/group-by-enable")
     public ProductEnableDto groupByEnable() {
         return service.groupProduct();
+    }
+
+    @GET
+    @Path("/hight-product")
+    public List<Product> highPrice(@QueryParam("limit") long limit) {
+        return service.highPrice(limit);
+    }
+
+    @GET
+    @Path("/filter")
+    public List<Product> filterByName(@QueryParam("name") String name) {
+        return service.filterByName(name);
     }
 
 }
