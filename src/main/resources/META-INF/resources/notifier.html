@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cliente WebSocket - Quarkus</title>
+</head>
+<body>
+<h2>Notificaciones WebSocket</h2>
+
+<p id="status">Conectando...</p>
+<ul id="mensajes"></ul>
+
+<script>
+    const socket = new WebSocket("ws://localhost:8080/ws/notificaciones");
+
+    socket.onopen = () => {
+        document.getElementById("status").innerText = "Conectado";
+        socket.send("Hola, me conecté!");
+    };
+
+    socket.onmessage = (event) => {
+        const item = document.createElement("li");
+        item.innerText = event.data;
+        document.getElementById("mensajes").appendChild(item);
+    };
+
+    socket.onclose = () => {
+        document.getElementById("status").innerText = "Desconectado";
+    };
+</script>
+
+</body>
+</html>
