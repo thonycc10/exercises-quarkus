@@ -1,0 +1,51 @@
+version: "3"
+
+services:
+  loki:
+    image: grafana/loki:2.9.1
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  promtail:
+    image: grafana/promtail:2.9.1
+    volumes:
+      - quarkus-logs:/var/log/quarkus
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+
+  quarkus-app:
+    image: quarkus-app  # Tu imagen que construiste
+    ports:
+      - "8080:8080"
+    volumes:
+      - quarkus-logs:/var/log/quarkus  # Mismo volumen compartido
+    environment:
+      - JAVA_OPTS_APPEND=-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+
+# Define el volumen compartido
+volumes:
+  quarkus-logs:
+
+
+#Para tener en cuenta
+#
+#  # 1. Para y elimina los contenedores actuales
+#  docker-compose down -v
+#
+#  # 2. Reconstruye tu imagen de Quarkus
+#  ./mvnw clean package
+#  docker build -t quarkus-app .
+#
+#  # 3. Levanta todos los servicios
+#  docker-compose up -d
+#
+#  # 4. Verifica que todos estén corriendo
+#  docker-compose ps
